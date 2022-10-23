@@ -1,4 +1,4 @@
-package core
+package application
 
 const (
 	AdvancedBusName string = "advancedbusname"

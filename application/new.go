@@ -1,4 +1,4 @@
-package core
+package application
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"

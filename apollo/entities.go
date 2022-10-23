@@ -1,9 +1,6 @@
 package apollo
 
 import (
-	"fmt"
-
-	"github.com/cevixe/cdk/common/file"
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/service/appsync"
 
@@ -18,13 +15,38 @@ type EntitiesResolverProps struct {
 	Table      awsdynamodb.Table        `field:"required"`
 }
 
+const EntitiesRequest = `
+#set($ids = [])
+#foreach($item in ${ctx.args.representations})
+	#set($map = {})
+	$util.qr($map.put("__typename", $util.dynamodb.toString($item.__typename)))
+	$util.qr($map.put("id", $util.dynamodb.toString($item.id)))
+	$util.qr($ids.add($map))
+#end
+
+{
+	"version" : "2018-05-29",
+	"operation" : "BatchGetItem",
+	"tables" : {
+    	"%s": {
+    		"keys": $util.toJson($ids),
+			"consistentRead": true
+		}
+    }
+}
+`
+
+const EntitiesResponse = `
+#if($ctx.error)
+	$util.error($ctx.error.message, $ctx.error.type)
+#end
+$util.toJson($context.result)
+`
+
 func NewEntitiesResolver(mod module.Module, alias string, props *EntitiesResolverProps) awsappsync.CfnResolver {
 
-	requestLocation := "libraries/cevixe/cdk/apollo/templates/entities/request.vtl"
-	request := fmt.Sprintf(file.GetFileContent(requestLocation), *props.Table.TableName())
-
-	responseLocation := "libraries/cevixe/cdk/apollo/templates/entities/response.vtl"
-	response := file.GetFileContent(responseLocation)
+	request := EntitiesRequest
+	response := EntitiesResponse
 
 	return appsync.NewResolver(
 		mod,

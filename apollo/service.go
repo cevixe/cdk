@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsappsync"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/cevixe/cdk/common/file"
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/service/appsync"
 )
@@ -17,15 +16,25 @@ type ServiceResolverProps struct {
 	Schema     *string                  `field:"required"`
 }
 
+const ServiceRequest = `
+{
+    "version": "2017-02-28",
+	"payload": {
+		"sdl": "%s"
+	}
+}
+`
+
+const ServiceResponse = `
+$util.toJson($context.result)
+`
+
 func NewServiceResolver(mod module.Module, alias string, props *ServiceResolverProps) awsappsync.CfnResolver {
 
 	escapedSchema := escapeSchema(props.Schema)
 
-	requestLocation := "libraries/cevixe/cdk/apollo/templates/service/request.vtl"
-	request := fmt.Sprintf(file.GetFileContent(requestLocation), *escapedSchema)
-
-	responseLocation := "libraries/cevixe/cdk/apollo/templates/service/response.vtl"
-	response := file.GetFileContent(responseLocation)
+	request := fmt.Sprintf(ServiceRequest, *escapedSchema)
+	response := ServiceResponse
 
 	return appsync.NewResolver(
 		mod,

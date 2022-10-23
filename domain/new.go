@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/cevixe/cdk/apollo"
-	"github.com/cevixe/cdk/core"
+	core "github.com/cevixe/cdk/application"
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/module/api"
 	"github.com/cevixe/cdk/module/objectstore"
