@@ -1,0 +1,18 @@
+#set($ids = [])
+#foreach($item in ${ctx.args.representations})
+	#set($map = {})
+	$util.qr($map.put("__typename", $util.dynamodb.toString($item.__typename)))
+	$util.qr($map.put("id", $util.dynamodb.toString($item.id)))
+	$util.qr($ids.add($map))
+#end
+
+{
+	"version" : "2018-05-29",
+	"operation" : "BatchGetItem",
+	"tables" : {
+    	"%s": {
+    		"keys": $util.toJson($ids),
+			"consistentRead": true
+		}
+    }
+}
