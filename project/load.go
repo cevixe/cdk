@@ -26,7 +26,7 @@ func Load(scope constructs.Construct) {
 	}
 
 	switch file.Version {
-	case "20221023":
+	case "2022-10-23":
 		loadProject20221023(scope, spec)
 	default:
 		log.Fatalf("unsupported configuration file version: %v", file.Version)
