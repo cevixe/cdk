@@ -3,14 +3,16 @@ package project
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/cevixe/cdk/common/file"
 	"gopkg.in/yaml.v3"
 )
 
-func Load(scope constructs.Construct, dir string) {
+func Load(scope constructs.Construct) {
 
+	dir := os.Getenv("CEVIXE_WORKSPACE")
 	spec := readSpecFile(dir)
 	genericMap := make(map[string]interface{})
 
