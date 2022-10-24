@@ -10,23 +10,26 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type GenericFile struct {
+	Version string `field:"required" yaml:"version"`
+}
+
 func Load(scope constructs.Construct) {
 
 	dir := os.Getenv("CEVIXE_WORKSPACE")
 	spec := readSpecFile(dir)
-	genericMap := make(map[string]interface{})
+	file := &GenericFile{}
 
-	err := yaml.Unmarshal(*spec, &genericMap)
+	err := yaml.Unmarshal(*spec, file)
 	if err != nil {
 		log.Fatalf("invalid configuration file format: %v", err)
 	}
 
-	version := genericMap["version"]
-	switch version {
+	switch file.Version {
 	case "20221023":
 		loadProject20221023(scope, spec)
 	default:
-		log.Fatalf("unsupported configuration file version: %v", version)
+		log.Fatalf("unsupported configuration file version: %v", file.Version)
 	}
 }
 
