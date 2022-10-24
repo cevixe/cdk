@@ -24,4 +24,10 @@ const (
 	EventHandlerName string = "eventhandlername"
 	EventHandlerArn  string = "eventhandlerarn"
 	EventHandlerRole string = "eventhandlerrole"
+
+	StateStoreName string = "statestorename"
+	StateStoreArn  string = "statestorearn"
+
+	ObjectStoreName string = "objectstorearn"
+	ObjectStoreArn  string = "objectstorename"
 )

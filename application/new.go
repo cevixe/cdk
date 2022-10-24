@@ -1,16 +1,21 @@
 package application
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambdaeventsources"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"github.com/cevixe/app/pkg/location"
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/module/bus"
 	"github.com/cevixe/cdk/module/eventstore"
 	"github.com/cevixe/cdk/module/function"
 	"github.com/cevixe/cdk/module/handler"
+	"github.com/cevixe/cdk/module/objectstore"
 	"github.com/cevixe/cdk/module/statestore"
 	"github.com/cevixe/cdk/naming"
 	"github.com/cevixe/cdk/service/iam"
@@ -18,7 +23,23 @@ import (
 	"github.com/cevixe/cdk/service/sqs"
 )
 
-func NewCore(scope constructs.Construct, app string) module.Module {
+func NewApplication(scope constructs.Construct, app string, domains ...string) {
+	newCore(scope, app)
+
+	for _, dom := range domains {
+		mod := newStoreModule(scope, app, dom)
+		ss := statestore.NewStateStore(mod, dom)
+		os := objectstore.NewObjectStore(mod, dom)
+
+		mod.Export(StateStoreArn, *ss.Resource().TableArn())
+		mod.Export(StateStoreName, *ss.Resource().TableName())
+
+		mod.Export(ObjectStoreArn, *os.Resource().BucketArn())
+		mod.Export(ObjectStoreName, *os.Resource().BucketName())
+	}
+}
+
+func newCore(scope constructs.Construct, app string) module.Module {
 	alias := "core"
 	mod := newModule(scope, app, alias)
 
@@ -28,13 +49,14 @@ func NewCore(scope constructs.Construct, app string) module.Module {
 	commandstore := statestore.NewStateStore(mod, "commandstore")
 	eventstore := eventstore.NewEventStore(mod, "eventstore")
 
-	advancedcdc := function.NewFunction(mod, "advancedcdc")
-	standardcdc := function.NewFunction(mod, "standardcdc")
+	advancedcdc := function.NewFunction(mod, "advancedcdc", location.AdvancedCdc)
+	standardcdc := function.NewFunction(mod, "standardcdc", location.StandardCdc)
 
 	eventhandler := handler.NewHandler(mod, "eventhandler",
 		&handler.HandlerProps{
 			Type:   handler.HandlerType_Advanced,
 			Events: &[]string{},
+			Main:   location.EventHandler,
 		},
 	)
 
@@ -84,9 +106,33 @@ func NewCore(scope constructs.Construct, app string) module.Module {
 	return mod
 }
 
+func newStoreModule(scope constructs.Construct, app string, alias string) module.Module {
+
+	mod := &moduleImpl{
+		app:      app,
+		name:     alias,
+		location: ".",
+	}
+
+	name := naming.NewName(mod, naming.ResType_Stack, "store")
+
+	mod.resource = awscdk.NewStack(
+		scope,
+		&alias,
+		&awscdk.StackProps{
+			StackName: name.Physical(),
+		},
+	)
+
+	return mod
+}
+
 func newModule(scope constructs.Construct, app string, alias string) module.Module {
 
-	location := "libraries/cevixe"
+	base := os.Getenv("GOPATH")
+	library := "github.com/cevixe/app"
+	version := "v0.2.0"
+	location := fmt.Sprintf("%s/pkg/mod/%s@%s", base, library, version)
 
 	mod := &moduleImpl{
 		app:      app,

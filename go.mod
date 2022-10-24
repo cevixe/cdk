@@ -7,6 +7,8 @@ require (
 	github.com/aws/constructs-go/constructs/v10 v10.1.137
 	github.com/aws/jsii-runtime-go v1.70.0
 	golang.org/x/text v0.4.0
+	gopkg.in/yaml.v3 v3.0.1
+	github.com/cevixe/app v0.2.0
 )
 
 require (

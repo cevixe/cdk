@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/module/function"
 )
@@ -44,11 +46,17 @@ type HandlerProps struct {
 
 	*/
 	Commands *[]string `field:"optional" json:"commands"`
+
+	Main string `field:"optional" json:"main"`
 }
 
 func NewHandler(mod module.Module, alias string, props *HandlerProps) Handler {
 
-	fn := function.NewFunction(mod, alias)
+	main := props.Main
+	if main == "" {
+		main = fmt.Sprintf("cmd/handler/%s/main.go", alias)
+	}
+	fn := function.NewFunction(mod, alias, main)
 
 	return &handlerImpl{
 		Function: fn,
