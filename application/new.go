@@ -131,7 +131,7 @@ func newModule(scope constructs.Construct, app string, alias string) module.Modu
 
 	base := os.Getenv("GOPATH")
 	library := "github.com/cevixe/app"
-	version := "v0.2.0"
+	version := "v0.2.1"
 	location := fmt.Sprintf("%s/pkg/mod/%s@%s", base, library, version)
 
 	mod := &moduleImpl{
