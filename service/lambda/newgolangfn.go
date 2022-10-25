@@ -25,12 +25,6 @@ func NewGolangFunction(mod module.Module, alias string, props *GolangFunctionPro
 		MemorySize:   jsii.Number(256),
 		Role:         role,
 		Entry:        &props.Entry,
-		Bundling: &awsgo.BundlingOptions{
-			CgoEnabled: jsii.Bool(false),
-			GoBuildFlags: &[]*string{
-				jsii.String("ldflags \"-s -w\""),
-			},
-		},
 	})
 	/*
 		return awslambda.NewFunction(
