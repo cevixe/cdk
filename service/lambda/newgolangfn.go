@@ -43,11 +43,8 @@ func newGolangFunctionCode(directory string, file string) awslambda.Code {
 	env := "CGO_ENABLED=0 GOOS=linux GOARCH=amd64"
 	config := "-ldflags=\"-w -s\""
 	artifact := "/asset-output/handler"
-	command := fmt.Sprintf("pwd && ls -laR /asset-input && %s go build %s -o %s %s", env, config, artifact, file)
+	command := fmt.Sprintf("%s go build %s -o %s %s", env, config, artifact, file)
 
-	fmt.Println(directory)
-	fmt.Println(file)
-	fmt.Println(command)
 	return awslambda.Code_FromAsset(
 		jsii.String(directory),
 		&awss3assets.AssetOptions{

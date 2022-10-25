@@ -2,6 +2,7 @@ package project
 
 import (
 	"log"
+	"os"
 
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/cevixe/cdk/application"
@@ -17,5 +18,13 @@ func loadProject20221023(scope constructs.Construct, fileBytes *[]byte) {
 		log.Fatalf("invalid configuration file structure: %v", err)
 	}
 
-	application.NewApplication(scope, file.Project.Name, *file.Project.Domains...)
+	location := os.Getenv("CEVIXE_APP_DIR")
+	if location == "" {
+		log.Fatalf("CEVIXE_APP_DIR not configured")
+	}
+
+	application.NewApplication(scope, file.Project.Name, &application.ApplicationProps{
+		Location: location,
+		Domains:  *file.Project.Domains,
+	})
 }

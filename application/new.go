@@ -1,15 +1,12 @@
 package application
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambdaeventsources"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"github.com/cevixe/app/pkg/location"
+	loc "github.com/cevixe/app/pkg/location"
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/module/bus"
 	"github.com/cevixe/cdk/module/eventstore"
@@ -23,10 +20,15 @@ import (
 	"github.com/cevixe/cdk/service/sqs"
 )
 
-func NewApplication(scope constructs.Construct, app string, domains ...string) {
-	newCore(scope, app)
+type ApplicationProps struct {
+	Location string
+	Domains  []string
+}
 
-	for _, dom := range domains {
+func NewApplication(scope constructs.Construct, app string, props *ApplicationProps) {
+	newCore(scope, app, props.Location)
+
+	for _, dom := range props.Domains {
 		mod := newStoreModule(scope, app, dom)
 		ss := statestore.NewStateStore(mod, dom)
 		os := objectstore.NewObjectStore(mod, dom)
@@ -39,9 +41,9 @@ func NewApplication(scope constructs.Construct, app string, domains ...string) {
 	}
 }
 
-func newCore(scope constructs.Construct, app string) module.Module {
+func newCore(scope constructs.Construct, app string, location string) module.Module {
 	alias := "core"
-	mod := newModule(scope, app, alias)
+	mod := newModule(scope, app, alias, location)
 
 	advancedbus := bus.NewBus(mod, "advancedbus", &bus.BusProps{Type: bus.BusType_Advanced})
 	standardbus := bus.NewBus(mod, "standardbus", &bus.BusProps{Type: bus.BusType_Standard})
@@ -49,14 +51,14 @@ func newCore(scope constructs.Construct, app string) module.Module {
 	commandstore := statestore.NewStateStore(mod, "commandstore")
 	eventstore := eventstore.NewEventStore(mod, "eventstore")
 
-	advancedcdc := function.NewFunction(mod, "advancedcdc", location.AdvancedCdc)
-	standardcdc := function.NewFunction(mod, "standardcdc", location.StandardCdc)
+	advancedcdc := function.NewFunction(mod, "advancedcdc", loc.AdvancedCdc)
+	standardcdc := function.NewFunction(mod, "standardcdc", loc.StandardCdc)
 
 	eventhandler := handler.NewHandler(mod, "eventhandler",
 		&handler.HandlerProps{
 			Type:   handler.HandlerType_Advanced,
 			Events: &[]string{},
-			Main:   location.EventHandler,
+			Main:   loc.EventHandler,
 		},
 	)
 
@@ -127,12 +129,7 @@ func newStoreModule(scope constructs.Construct, app string, alias string) module
 	return mod
 }
 
-func newModule(scope constructs.Construct, app string, alias string) module.Module {
-
-	base := os.Getenv("GOPATH")
-	library := "github.com/cevixe/app"
-	version := "v0.2.1"
-	location := fmt.Sprintf("%s/pkg/mod/%s@%s", base, library, version)
+func newModule(scope constructs.Construct, app string, alias string, location string) module.Module {
 
 	mod := &moduleImpl{
 		app:      app,
