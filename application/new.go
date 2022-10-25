@@ -1,6 +1,8 @@
 package application
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambdaeventsources"
@@ -51,14 +53,14 @@ func newCore(scope constructs.Construct, app string, location string) module.Mod
 	commandstore := statestore.NewStateStore(mod, "commandstore")
 	eventstore := eventstore.NewEventStore(mod, "eventstore")
 
-	advancedcdc := function.NewFunction(mod, "advancedcdc", loc.AdvancedCdc)
-	standardcdc := function.NewFunction(mod, "standardcdc", loc.StandardCdc)
+	advancedcdc := function.NewFunction(mod, "advancedcdc", fmt.Sprintf("%s/%s", mod.Location(), loc.AdvancedCdc))
+	standardcdc := function.NewFunction(mod, "standardcdc", fmt.Sprintf("%s/%s", mod.Location(), loc.StandardCdc))
 
 	eventhandler := handler.NewHandler(mod, "eventhandler",
 		&handler.HandlerProps{
 			Type:   handler.HandlerType_Advanced,
 			Events: &[]string{},
-			Main:   loc.EventHandler,
+			Entry:  fmt.Sprintf("%s/%s", mod.Location(), loc.EventHandler),
 		},
 	)
 

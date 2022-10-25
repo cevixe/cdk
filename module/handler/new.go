@@ -47,14 +47,14 @@ type HandlerProps struct {
 	*/
 	Commands *[]string `field:"optional" json:"commands"`
 
-	Main string `field:"optional" json:"main"`
+	Entry string `field:"optional" json:"main"`
 }
 
 func NewHandler(mod module.Module, alias string, props *HandlerProps) Handler {
 
-	main := props.Main
+	main := props.Entry
 	if main == "" {
-		main = fmt.Sprintf("cmd/handler/%s/main.go", alias)
+		main = fmt.Sprintf("%s/cmd/handler/%s/main.go", mod.Location(), alias)
 	}
 	fn := function.NewFunction(mod, alias, main)
 

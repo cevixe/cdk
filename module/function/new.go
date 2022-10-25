@@ -5,14 +5,13 @@ import (
 	"github.com/cevixe/cdk/service/lambda"
 )
 
-func NewFunction(mod module.Module, alias string, main string) Function {
+func NewFunction(mod module.Module, alias string, entry string) Function {
 
 	fn := lambda.NewGolangFunction(
 		mod,
 		alias,
 		&lambda.GolangFunctionProps{
-			Directory: mod.Location(),
-			File:      main,
+			Entry: entry,
 		},
 	)
 

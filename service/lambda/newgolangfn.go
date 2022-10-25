@@ -10,8 +10,7 @@ import (
 )
 
 type GolangFunctionProps struct {
-	Directory string
-	File      string
+	Entry string
 }
 
 func NewGolangFunction(mod module.Module, alias string, props *GolangFunctionProps) awslambda.Function {
@@ -25,8 +24,13 @@ func NewGolangFunction(mod module.Module, alias string, props *GolangFunctionPro
 		Tracing:      awslambda.Tracing_ACTIVE,
 		MemorySize:   jsii.Number(256),
 		Role:         role,
-		ModuleDir:    &props.Directory,
-		Entry:        &props.File,
+		Entry:        &props.Entry,
+		Bundling: &awsgo.BundlingOptions{
+			CgoEnabled: jsii.Bool(false),
+			GoBuildFlags: &[]*string{
+				jsii.String("ldflags \"-s -w\""),
+			},
+		},
 	})
 	/*
 		return awslambda.NewFunction(
