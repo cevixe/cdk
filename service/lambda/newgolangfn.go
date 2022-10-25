@@ -1,16 +1,11 @@
 package lambda
 
 import (
-	"fmt"
-	"io/ioutil"
-	"log"
-
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/naming"
 
-	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
+	awsgo "github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
 	"github.com/aws/jsii-runtime-go"
 )
 
@@ -24,22 +19,33 @@ func NewGolangFunction(mod module.Module, alias string, props *GolangFunctionPro
 	name := naming.NewName(mod, naming.ResType_Lambda, alias)
 	role := NewFunctionRole(mod, alias)
 
-	return awslambda.NewFunction(
-		mod.Resource(),
-		name.Logical(),
-		&awslambda.FunctionProps{
-			FunctionName: name.Physical(),
-			Architecture: awslambda.Architecture_X86_64(),
-			Tracing:      awslambda.Tracing_ACTIVE,
-			Runtime:      awslambda.Runtime_GO_1_X(),
-			MemorySize:   jsii.Number(256),
-			Code:         newGolangFunctionCode(props.Directory, props.File),
-			Handler:      jsii.String("handler"),
-			Role:         role,
-		},
-	)
+	return awsgo.NewGoFunction(mod.Resource(), name.Logical(), &awsgo.GoFunctionProps{
+		FunctionName: name.Physical(),
+		Architecture: awslambda.Architecture_X86_64(),
+		Tracing:      awslambda.Tracing_ACTIVE,
+		MemorySize:   jsii.Number(256),
+		Role:         role,
+		ModuleDir:    &props.Directory,
+		Entry:        &props.File,
+	})
+	/*
+		return awslambda.NewFunction(
+			mod.Resource(),
+			name.Logical(),
+			&awslambda.FunctionProps{
+				FunctionName: name.Physical(),
+				Architecture: awslambda.Architecture_X86_64(),
+				Tracing:      awslambda.Tracing_ACTIVE,
+				Runtime:      awslambda.Runtime_GO_1_X(),
+				MemorySize:   jsii.Number(256),
+				Code:         newGolangFunctionCode(props.Directory, props.File),
+				Handler:      jsii.String("handler"),
+				Role:         role,
+			},
+		)*/
 }
 
+/*
 func newGolangFunctionCode(directory string, file string) awslambda.Code {
 
 	env := "CGO_ENABLED=0 GOOS=linux GOARCH=amd64"
@@ -76,3 +82,5 @@ func newGolangFunctionCode(directory string, file string) awslambda.Code {
 		},
 	)
 }
+
+*/
