@@ -2,6 +2,8 @@ package lambda
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 
 	"github.com/cevixe/cdk/module"
 	"github.com/cevixe/cdk/naming"
@@ -45,6 +47,20 @@ func newGolangFunctionCode(directory string, file string) awslambda.Code {
 	artifact := "/asset-output/handler"
 	command := fmt.Sprintf("%s go build %s -o %s %s", env, config, artifact, file)
 
+	fmt.Println("====================================================")
+	fmt.Printf("Directory: %s\n", directory)
+	fmt.Printf("File: %s\n", file)
+	fmt.Printf("Command: %s\n", command)
+
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name(), file.IsDir())
+	}
+	fmt.Println("====================================================")
 	return awslambda.Code_FromAsset(
 		jsii.String(directory),
 		&awss3assets.AssetOptions{
